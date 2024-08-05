@@ -4,6 +4,12 @@ Learning Enriched Features via Selective State Spaces Model for Efficient Image 
 
 ##  Our code will be released after the paper is published
 
+
+## Quick Run
+
+To test the pre-trained models 
+[Google Drive](https://drive.google.com/drive/folders/1WOYuuvGCDOJWo0U6PizE4780EmkxbDya?usp=sharing)
+
 ## Citations
 If our code helps your research or work, please consider citing our paper.
 The following is a BibTeX reference:
