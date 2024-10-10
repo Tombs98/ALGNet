@@ -19,11 +19,12 @@ If our code helps your research or work, please consider citing our paper.
 The following is a BibTeX reference:
 
 ```
-@article{Gao2023PIO,
-  title={Learning Enriched Features via Selective State Spaces Model for Efficient Image Deblurring},
-  author={Hu Gao and Depeng Dang},
-  journal={arXiv preprint arXiv:2403.20106},
-  year={2024}
+@inproceedings{
+gao2024learning,
+title={Learning Enriched Features via Selective State Spaces Model for Efficient Image Deblurring},
+author={Hu Gao and Bowen Ma and Ying Zhang and Jingfan Yang and Jing Yang and Depeng Dang},
+booktitle={ACM Multimedia 2024},
+year={2024},
 }
 ```
 
