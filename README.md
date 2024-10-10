@@ -10,6 +10,10 @@ Learning Enriched Features via Selective State Spaces Model for Efficient Image 
 To test the pre-trained models 
 [Google Drive](https://drive.google.com/drive/folders/1WOYuuvGCDOJWo0U6PizE4780EmkxbDya?usp=sharing)
 
+
+The visual result(ALGNet-32, trained only on GoPro)
+[Google Drive](https://drive.google.com/drive/folders/1auM3j5Yx2HEKuDUlIJWDDlirvjnv_RvB?usp=sharing).
+
 ## Citations
 If our code helps your research or work, please consider citing our paper.
 The following is a BibTeX reference:
