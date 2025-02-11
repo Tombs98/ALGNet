@@ -4,6 +4,9 @@ Learning Enriched Features via Selective State Spaces Model for Efficient Image 
 
 ##  Our code will be released after the paper is published
 
+Since we are preparing to extend the paper to journals, the code will be published together with the journal paper after it is accepted.
+Our core code does not modify the SSM module and can be self-written according to our network architecture diagram.
+
 
 ## Quick Run
 
