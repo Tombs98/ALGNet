@@ -20,27 +20,46 @@ class Glayer(nn.Module):
         super().__init__()
         self.dim = dim
         self.norm = nn.LayerNorm(dim)
-       
+        self.mamba = Mamba(
+                d_model=dim, # Model dimension d_model
+                d_state=d_state,  # SSM state expansion factor
+                d_conv=d_conv,    # Local convolution width
+                expand=expand,    # Block expansion factor
+        )
     
     @autocast(enabled=False)
     def forward(self, x):
         if x.dtype == torch.float16:
             x = x.type(torch.float32)
         B, C = x.shape[:2]
-      
+        assert C == self.dim
+        n_tokens = x.shape[2:].numel()
+        img_dims = x.shape[2:]
+        x_flat = x.reshape(B, C, n_tokens).transpose(-1, -2)
+        x_norm = self.norm(x_flat)
+        x_mamba = self.mamba(x_norm)
+        out = x_mamba.transpose(-1, -2).reshape(B, C, *img_dims)
 
         return out
 
 class Llayer(nn.Module):
     def __init__(self, c, DW_Expand=2):
         super().__init__()
-      
+        dw_channel = c * DW_Expand
+        self.ap = nn.AdaptiveAvgPool2d(1)
+        self.conv1 = nn.Conv2d(in_channels=dw_channel // 2, out_channels=dw_channel // 2, kernel_size=1, padding=0, stride=1,
+                      groups=1, bias=True)
+
+        self.conv2 = nn.Conv2d(in_channels=dw_channel // 2, out_channels=c, kernel_size=1, padding=0, stride=1, groups=1, bias=True)
 
 
     def forward(self, x):
-        
+        inp = x 
+        x = self.ap(x)
+        x = self.conv1(x)
+        x = inp * x
+        x = self.conv2(x)
         return x
-
 
 
 class BasicBlock(nn.Module):
@@ -90,11 +109,12 @@ class BasicBlock(nn.Module):
         x = self.conv1(x)
         x = self.conv2(x)
         x = self.sg(x)
-    
         x_g = self.g_layer(x)
 
         x_l = self.l_layer(x)
-       
+      
+
+     
 
         x_g = x_g * (self.inside_all + 1.)
         x_g = x_g * self.lamb_g[None,:,None,None]
@@ -104,13 +124,14 @@ class BasicBlock(nn.Module):
        
         x = self.dropout1(x)
         y = inp + x
-       
+      
+     
         x = self.conv4(self.norm2(y))
         x = self.sg(x)
         x = self.conv5(x)
 
         x = self.dropout2(x)
-       
+
         return y + x * self.beta
     
 
@@ -167,12 +188,11 @@ class SFE(nn.Module):
 
 
 
-
 class ALGNet(nn.Module):
     
     #middle_blk_num=1, enc_blk_nums=[1,1,1,28], dec_blk_nums=[1,1,1,1]
     # middle_blk_num=8, enc_blk_nums=[2,2,4,8], dec_blk_nums=[8,4,2,2]
-    def __init__(self, img_channel=3, width=32, middle_blk_num=1, enc_blk_nums=[1,1,1,28], dec_blk_nums=[1,1,1,1]):
+    def __init__(self, img_channel=3, width=32, middle_blk_num=8, enc_blk_nums=[2,2,4,8], dec_blk_nums=[8,4,2,2]):
         super().__init__()
         self.intro = nn.Conv2d(in_channels=img_channel, out_channels=width, kernel_size=3, padding=1, stride=1, groups=1,
                               bias=True)
@@ -253,7 +273,6 @@ class ALGNet(nn.Module):
         z8 = self.SFE8(x_8)
 
         x = self.intro(inp)
-        
         encs = []
         enc_i = 0
         for encoder, down in zip(self.encoders, self.downs):
@@ -269,7 +288,7 @@ class ALGNet(nn.Module):
                 x = self.FAM8(x, z8)
 
         x = self.middle_blks(x)
-       
+        
         index = 0
         decs = []
         for decoder, up, enc_skip in zip(self.decoders, self.ups, encs[::-1]):
